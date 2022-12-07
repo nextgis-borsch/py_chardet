@@ -158,7 +158,7 @@ endif()
 
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${OUT_DIR_NAME}/chardet/ DESTINATION ${INSTALL_LIB_DIR}/inst/Lib/site-packages/chardet)
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${OUT_DIR_NAME}/chardet/ DESTINATION ${INSTALL_LIB_DIR}/Lib/site-packages/chardet)
 endif()
 
 # Archiving ====================================================================
