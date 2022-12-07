@@ -156,78 +156,9 @@ if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${OUT_DIR_NAME})
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_BINARY_DIR}/${OUT_NAME})
 endif()
 
-macro(build_py ver)
-    status_message("Configuring ...")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E env "${FLAGS}"
-        ${PYTHON${ver}_EXECUTABLE} setup.py build ${BUILD_INCLUDES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${OUT_DIR_NAME}
-        OUTPUT_QUIET ERROR_QUIET
-    )
-
-    add_custom_target(build_py${ver} ALL
-        COMMAND ${CMAKE_COMMAND} -E env "${FLAGS}"
-        ${PYTHON${ver}_EXECUTABLE} setup.py build_ext ${BUILD_INCLUDES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${OUT_DIR_NAME}
-        VERBATIM
-    )
-
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set(SETUP_OPTS ${SETUP_OPTS} --no-compile --single-version-externally-managed --record=rekord.txt --prefix=${CMAKE_CURRENT_BINARY_DIR}/inst_tmp)
-    elseif(WIN32)
-        string(REPLACE "/" "\\\\" TMP_PATH "${CMAKE_CURRENT_BINARY_DIR}/inst_tmp")
-        set(SETUP_OPTS ${SETUP_OPTS} --no-compile --single-version-externally-managed --record=rekord.txt --prefix=${TMP_PATH})
-    else()
-        execute_process ( COMMAND ${PYTHON${ver}_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" OUTPUT_VARIABLE PY_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-        set(TEST_CMD "try:
-    import setuptools
-    print(1)
-except ImportError:
-    pass")
-
-        execute_process ( COMMAND ${PYTHON${ver}_EXECUTABLE} -c ${TEST_CMD} OUTPUT_VARIABLE PY_HAVE_SETUPTOOLS OUTPUT_STRIP_TRAILING_WHITESPACE)
-        if(PY_HAVE_SETUPTOOLS)
-            set(SETUP_OPTS "${SETUP_OPTS} --no-compile --single-version-externally-managed --record=rekord.txt")
-        endif()
-
-        string( LENGTH "$ENV{DESTDIR}" DESTDIRLEN )
-        if ( ${DESTDIRLEN} GREATER 0 )
-            set(SETUP_OPTS "${SETUP_OPTS} --root=$ENV{DESTDIR}")
-        elseif(PYTHON_DESTDIR)
-            set(SETUP_OPTS "${SETUP_OPTS} --root=${PYTHON_DESTDIR}")
-        endif()
-
-        # check debian
-        string(FIND ${PY_SITE_PACKAGES} "dist-packages" PY_DIST_POS)
-        if(${PY_DIST_POS} GREATER -1)
-            set(SETUP_OPTS "${SETUP_OPTS} --install-layout=deb")
-        endif()
-
-        # TODO: do we need --install-lib=$(PYTHON_INSTALL_LIB) ?
-
-        set(SETUP_OPTS "${SETUP_OPTS} --prefix=${CMAKE_CURRENT_BINARY_DIR}/inst_tmp")
-
-    endif()
-    add_custom_target(install_py${ver} ALL
-        COMMAND ${CMAKE_COMMAND} -E env "${FLAGS}"
-        ${PYTHON${ver}_EXECUTABLE} setup.py install ${SETUP_OPTS}
-        DEPENDS build_py${ver}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${OUT_DIR_NAME}
-        VERBATIM
-    )
-endmacro()
-
-
-if(PYTHON2_EXECUTABLE)
-    build_py(2)
-endif()
-
-if(PYTHON3_EXECUTABLE)
-    build_py(3)
-endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/inst_tmp/ DESTINATION ${INSTALL_LIB_DIR})
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${OUT_DIR_NAME}/chardet/ DESTINATION ${INSTALL_LIB_DIR}/inst/Lib/site-packages/chardet)
 endif()
 
 # Archiving ====================================================================
